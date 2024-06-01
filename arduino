@@ -1,0 +1,85 @@
+#include <Servo.h>
+
+Servo myServo;
+
+const int motionPin = A0;
+
+const int trigPin = A2;
+const int echoPin = A3;
+const int servoPin = A1;
+const int ledPin = A4;
+
+
+
+bool motionDetected = false;
+bool motionDetected = false;
+bool ultrasonicDetected = false;
+bool ultrasonicDetected = false;
+unsigned long lastUltrasonicTime = 0;
+unsigned long lastUltrasonicTime = 0;
+unsigned long ultrasonicCooldown = 5000; // 5 seconds cooldown for motion sensor after ultrasonic detection
+unsigned long ultrasonicCooldown = 5000; // 5 seconds cooldown for motion sensor after ultrasonic detection
+
+
+void setup() {
+void setup() {
+  pinMode(motionPin, INPUT);
+  pinMode(motionPin, INPUT);
+  pinMode(trigPin, OUTPUT);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(ledPin, OUTPUT);
+  pinMode(ledPin, OUTPUT);
+  
+  
+  myServo.attach(servoPin);
+  myServo.attach(servoPin);
+  myServo.write(0);  // Initial position
+  myServo.write(0);  // Initial position
+}
+}
+
+
+void loop() {
+  // Check for motion detection if ultrasonic sensor hasn't detected anything recently
+  if (!ultrasonicDetected && digitalRead(motionPin) == HIGH) {
+    motionDetected = true;
+    activateServo();
+    delay(4000); // Debounce delay
+  } else {
+    motionDetected = false;
+  }
+
+  // Check for ultrasonic detection
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  long duration = pulseIn(echoPin, HIGH);
+  int distance = duration * 0.034 / 2;
+
+  if (distance < 30) {
+    ultrasonicDetected = true;
+    lastUltrasonicTime = millis(); // Record the time of ultrasonic detection
+    activateServo();
+    delay(4000); // Debounce delay
+  } else {
+    ultrasonicDetected = false;
+  }
+
+  // Check if ultrasonic cooldown period has passed
+  if (ultrasonicDetected && (millis() - lastUltrasonicTime > ultrasonicCooldown)) {
+    ultrasonicDetected = false;
+  }
+}
+
+void activateServo() {
+  digitalWrite(ledPin, LOW); // Turn on LED
+  myServo.write(90); // Turn servo to 90 degrees
+  delay(5000); // Wait for 5 seconds
+  myServo.write(0); // Return servo to 0 degrees
+  digitalWrite(ledPin, HIGH); // Turn off LED
+}
